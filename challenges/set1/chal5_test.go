@@ -7,7 +7,7 @@ import (
 	"github.com/amcraig/cryptopals-go/pkg/xor"
 )
 
-func TestRepeatingKeyXOR(t *testing.T) {
+func Test5RepeatingKeyXOR(t *testing.T) {
 	// Unsure if there is a newline char here or should just be a space
 	input := "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
 	encryptionKey := "ICE"
