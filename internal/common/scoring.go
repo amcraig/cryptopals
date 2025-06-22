@@ -1,8 +1,13 @@
 package common
 
-import "github.com/amcraig/cryptopals-go/internal/constants"
+import (
+	"fmt"
+	"math/bits"
 
-func ScoreEnglishPhrase(cyphertext []byte) (float64, error) {
+	"github.com/amcraig/cryptopals-go/internal/constants"
+)
+
+func ScoreEnglishPhrase(cyphertext []byte, spaceThreshold int) (float64, error) {
 
 	// Calculates the score based on letter frequencies
 	score := 0.
@@ -34,9 +39,29 @@ func ScoreEnglishPhrase(cyphertext []byte) (float64, error) {
 		}
 	}
 
-	if spaces < 3 {
+	if spaces < spaceThreshold {
 		return 0., nil
 	}
 
+	return score, nil
+}
+
+// The (bytewise) Hamming distance is just the number of differing bits.
+func HammingDistance(a, b []byte) (int, error) {
+	if len(a) != len(b) {
+		return -1, fmt.Errorf("inputs lengths do not match")
+	}
+	score := 0
+	for i := range a {
+		ai := a[i]
+		bi := b[i]
+		if ai != bi {
+			diff := ai ^ bi
+			// https://en.wikipedia.org/wiki/Hamming_weight
+			// Also known as the population count or sideways add of a bitstring
+			bitcount := bits.OnesCount8(diff)
+			score += bitcount
+		}
+	}
 	return score, nil
 }
