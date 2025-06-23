@@ -1,8 +1,6 @@
 package xor
 
 import (
-	"encoding/hex"
-
 	"github.com/amcraig/cryptopals-go/internal/common"
 )
 
@@ -15,16 +13,14 @@ func SingleByteXOREncode(a []byte, b byte) ([]byte, error) {
 	return buf, nil
 }
 
-func SingleByteXORDecode(cyphertext string) (string, string, float64, error) {
-	buf, _ := hex.DecodeString(cyphertext)
-
-	score := 0.
-	asciiChar := ""
-	message := ""
+func SingleByteXORDecode(buf []byte, spaceThreshold int) ([]byte, byte, float64, error) {
+	var score float64
+	var asciiByte byte
+	var message []byte
 
 	for i := range 256 {
 		tmpbuf, _ := SingleByteXOREncode(buf, byte(i))
-		curScore, _ := common.ScoreEnglishPhrase(tmpbuf)
+		curScore, _ := common.ScoreEnglishPhrase(tmpbuf, spaceThreshold)
 
 		if curScore == 0. {
 			continue
@@ -32,10 +28,10 @@ func SingleByteXORDecode(cyphertext string) (string, string, float64, error) {
 
 		if curScore > score {
 			score = curScore
-			asciiChar = string(byte(i))
-			message = string(tmpbuf)
+			asciiByte = byte(i)
+			message = tmpbuf
 		}
 	}
 
-	return message, asciiChar, score, nil
+	return message, asciiByte, score, nil
 }

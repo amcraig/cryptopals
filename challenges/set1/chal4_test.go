@@ -13,19 +13,19 @@ func Test4DetectSingleCharacterXOR(t *testing.T) {
 	var inputFile string = "./testFiles/4.txt"
 	charStrings := common.ReadFileIntoStringSlice(inputFile)
 
-	detectedMessage := ""
+	var detectedMessage []byte
 	var detectedByte byte
 	detectedIndex := 0
 	curScore := 0.
 	for idx, input := range charStrings {
 		buf, _ := hex.DecodeString(input)
-		mes, asciiByte, score, err := xor.SingleByteXORDecode(buf, 3)
+		mesBuf, asciiByte, score, err := xor.SingleByteXORDecode(buf, 3)
 		if err != nil {
 			log.Fatal(err)
 		}
 		if score > curScore {
 			curScore = score
-			detectedMessage = mes
+			detectedMessage = mesBuf
 			detectedByte = asciiByte
 			detectedIndex = idx
 		}
@@ -33,7 +33,7 @@ func Test4DetectSingleCharacterXOR(t *testing.T) {
 
 	if string(detectedByte) != "5" &&
 		detectedIndex != 170 &&
-		detectedMessage != "Now that the party is jumping\n" {
+		string(detectedMessage) != "Now that the party is jumping\n" {
 		t.Error("Message found is not what is expected")
 	}
 
