@@ -7,7 +7,7 @@ import (
 )
 
 func TestReadFileIntoString(t *testing.T) {
-	filepath := "../../challenges/set1/testFiles/6_test.txt"
+	filepath := "../../challenges/set1/testFiles/6_file_input_test.txt"
 	want := "HUIfTQsPAh9PE048GmllH0kcDk4TAQsHThsBFkU2AB4BSWQgVB0dQzNTTmVSBgBHVBwNRU0HBAxTEjwMHghJGgkRTxRMIRpHKwAFHUdZEQQJAGQmB1MANxYG"
 
 	got := common.ReadFileIntoString(filepath)
