@@ -4,13 +4,13 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/amcraig/cryptopals-go/internal/common"
+	"github.com/amcraig/cryptopals-go/internal/fileio"
 	"github.com/amcraig/cryptopals-go/pkg/xor"
 )
 
 func Test6BreakRepeatingKeyXOR(t *testing.T) {
 	// Input file had been Base64'd after being encrypt with repeating-key XOR
-	inputStrBase64 := common.ReadFileIntoString("./testFiles/6.txt")
+	inputStrBase64 := fileio.ReadFileIntoString("./testFiles/6.txt")
 	encryptedBuf, _ := base64.StdEncoding.DecodeString(inputStrBase64)
 	want := "Terminator X: Bring the noise"
 

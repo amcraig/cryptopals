@@ -5,13 +5,13 @@ import (
 	"log"
 	"testing"
 
-	"github.com/amcraig/cryptopals-go/internal/common"
+	"github.com/amcraig/cryptopals-go/internal/fileio"
 	"github.com/amcraig/cryptopals-go/pkg/xor"
 )
 
 func Test4DetectSingleCharacterXOR(t *testing.T) {
 	var inputFile string = "./testFiles/4.txt"
-	charStrings := common.ReadFileIntoStringSlice(inputFile)
+	charStrings := fileio.ReadFileIntoStringSlice(inputFile)
 
 	var detectedMessage []byte
 	var detectedByte byte
