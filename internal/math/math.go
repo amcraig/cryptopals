@@ -1,4 +1,4 @@
-package common
+package math
 
 // I am aware that these exist ynder the package: https://pkg.go.dev/golang.org/x/exp/constraints
 // But to facilitate learning and not relying on imports I'm implementing them below.
