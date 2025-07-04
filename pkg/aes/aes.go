@@ -62,10 +62,27 @@ func (s state) SubBytes() state {
 	return s
 }
 
+func (s state) InvSubBytes() state {
+	for i := range s {
+		for j := range s[i] {
+			s[i][j] = constants.InvSBox[s[i][j]]
+		}
+	}
+	return s
+}
+
 func (s state) ShiftRows() state {
 	for idx, row := range s {
 		mod := idx % 4
 		s[idx] = matrix.RotateVector(row, mod)
+	}
+	return s
+}
+
+func (s state) InvShiftRows() state {
+	for idx, row := range s {
+		mod := idx % 4
+		s[idx] = matrix.RotateVector(row, -mod)
 	}
 	return s
 }
@@ -93,11 +110,39 @@ func (s state) MixColumns() state {
 	return matrix.Transpose(t)
 }
 
-func (s state) AddRoundKey(keySchedule []word, i uint8) state {
-	roundKey := matrix.Transpose(keySchedule[i*4 : i*4+4])
-	for i := range roundKey {
-		for j := range roundKey[i] {
-			s[i][j] = s[i][j] ^ roundKey[i][j]
+func (s state) InvMixColumns() state {
+	t := make([][]byte, 4)
+	for wi, word := range s.Words() {
+		tempWord := make([]byte, 4)
+		for ri, row := range constants.InvMixColumnMatrix {
+			var acc byte
+			for bi := range word {
+				switch mult := row[bi]; mult {
+				case 0x09:
+					// 9 = 8 ^ 1
+					acc ^= xtimes(xtimes(xtimes(word[bi]))) ^ word[bi]
+				case 0x0b:
+					// 11 = 8 ^ 2 ^ 1
+					acc ^= xtimes(xtimes(xtimes(word[bi]))) ^ xtimes(word[bi]) ^ word[bi]
+				case 0x0d:
+					// 13 = 8 ^ 4 ^ 1
+					acc ^= xtimes(xtimes(xtimes(word[bi]))) ^ xtimes(xtimes(word[bi])) ^ word[bi]
+				case 0x0e:
+					// 14 = 8 ^ 4 ^ 2
+					acc ^= xtimes(xtimes(xtimes(word[bi]))) ^ xtimes(xtimes(word[bi])) ^ xtimes(word[bi])
+				}
+			}
+			tempWord[ri] = acc
+		}
+		t[wi] = tempWord
+	}
+	return matrix.Transpose(t)
+}
+
+func (s state) AddRoundKey(rk [][]byte) state {
+	for i := range rk {
+		for j := range rk[i] {
+			s[i][j] = s[i][j] ^ rk[i][j]
 		}
 	}
 	return s
@@ -105,29 +150,35 @@ func (s state) AddRoundKey(keySchedule []word, i uint8) state {
 
 // Public
 
-func AES128Cipher(in []byte, key []byte) ([]byte, error) {
-	const NumRounds uint8 = 10
-	keySchedule, err := keyExpansion(key)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate the key schedule: %v", err)
-	}
-
-	return Cipher(in, NumRounds, keySchedule), nil
-}
-
-func Cipher(in []byte, numRounds uint8, keySchedule []word) []byte {
+func Cipher(in []byte, key []byte) []byte {
+	ks, numRounds, _ := keyExpansion(key)
 	state, _ := readBlockIntoState(in)
-	state = state.AddRoundKey(keySchedule, 0)
-	var round uint8
-	for round = 1; round < numRounds; round++ {
+	state = state.AddRoundKey(matrix.Transpose(ks[:4]))
+	for round := 1; round < numRounds; round++ {
 		state = state.SubBytes()
 		state = state.ShiftRows()
 		state = state.MixColumns()
-		state = state.AddRoundKey(keySchedule, round)
+		state = state.AddRoundKey(matrix.Transpose(ks[4*round : 4*round+4]))
 	}
 	state = state.SubBytes()
 	state = state.ShiftRows()
-	state.AddRoundKey(keySchedule, 10)
+	state.AddRoundKey(matrix.Transpose(ks[4*numRounds : 4*numRounds+4]))
+	return slices.Concat(state.Words()...)
+}
+
+func InvCipher(ct []byte, key []byte) []byte {
+	ks, numRounds, _ := keyExpansion(key)
+	state, _ := readBlockIntoState(ct)
+	state = state.AddRoundKey(matrix.Transpose(ks[4*numRounds:])) // since the schedule is applied via XOR, redoing the operation unapplies
+	for round := numRounds - 1; round > 0; round-- {
+		state = state.InvShiftRows()
+		state = state.InvSubBytes()
+		state = state.AddRoundKey(matrix.Transpose(ks[4*round : 4*round+4]))
+		state = state.InvMixColumns()
+	}
+	state = state.InvShiftRows()
+	state = state.InvSubBytes()
+	state = state.AddRoundKey(matrix.Transpose(ks[:4]))
 	return slices.Concat(state.Words()...)
 }
 
@@ -143,7 +194,7 @@ func xtimes(b byte) byte {
 
 func readKeyIntoWords(key []byte) []word {
 	numWords := len(key) / 4
-	if numWords < 4 || numWords > 6 {
+	if numWords < 4 || numWords > 8 {
 		panic("the incoming key is does not match: 128, 192, or 256 bits")
 	}
 	var words []word
@@ -154,12 +205,12 @@ func readKeyIntoWords(key []byte) []word {
 	return words
 }
 
-func keyExpansion(key []byte) ([]word, error) {
+func keyExpansion(key []byte) ([]word, int, error) {
 	var numRounds int
 
 	switch len(key) {
 	default:
-		return nil, fmt.Errorf("the incoming key is does not match: 128, 192, or 256 bits")
+		return nil, 0, fmt.Errorf("the incoming key is does not match: 128, 192, or 256 bits")
 	case 16:
 		numRounds = 10
 	case 24:
@@ -188,7 +239,7 @@ func keyExpansion(key []byte) ([]word, error) {
 		}
 		keySchedule = append(keySchedule, XORWord(slices.Clone(keySchedule[i-nk]), temp))
 	}
-	return keySchedule, nil
+	return keySchedule, numRounds, nil
 }
 
 func readBlockIntoState(block []byte) (state, error) {
