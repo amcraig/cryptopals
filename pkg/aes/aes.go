@@ -12,6 +12,8 @@ import (
 // Advanced Encryption Standard (AES)
 // https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf
 
+const AESBlockSize = 16 // Bytes
+
 // word type definition:
 
 type word = []byte
@@ -150,7 +152,10 @@ func (s state) AddRoundKey(rk [][]byte) state {
 
 // Public
 
-func Cipher(in []byte, key []byte) []byte {
+func Cipher(in []byte, key []byte) ([]byte, error) {
+	if len(in) != AESBlockSize {
+		return nil, fmt.Errorf("input block was not 128 bits")
+	}
 	ks, numRounds, _ := keyExpansion(key)
 	state, _ := readBlockIntoState(in)
 	state = state.AddRoundKey(matrix.Transpose(ks[:4]))
@@ -163,10 +168,13 @@ func Cipher(in []byte, key []byte) []byte {
 	state = state.SubBytes()
 	state = state.ShiftRows()
 	state.AddRoundKey(matrix.Transpose(ks[4*numRounds : 4*numRounds+4]))
-	return slices.Concat(state.Words()...)
+	return slices.Concat(state.Words()...), nil
 }
 
-func InvCipher(ct []byte, key []byte) []byte {
+func InvCipher(ct []byte, key []byte) ([]byte, error) {
+	if len(ct) != AESBlockSize {
+		return nil, fmt.Errorf("input block was not 128 bits")
+	}
 	ks, numRounds, _ := keyExpansion(key)
 	state, _ := readBlockIntoState(ct)
 	state = state.AddRoundKey(matrix.Transpose(ks[4*numRounds:])) // since the schedule is applied via XOR, redoing the operation unapplies
@@ -179,7 +187,7 @@ func InvCipher(ct []byte, key []byte) []byte {
 	state = state.InvShiftRows()
 	state = state.InvSubBytes()
 	state = state.AddRoundKey(matrix.Transpose(ks[:4]))
-	return slices.Concat(state.Words()...)
+	return slices.Concat(state.Words()...), nil
 }
 
 // Private
