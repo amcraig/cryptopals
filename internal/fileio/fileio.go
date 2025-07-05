@@ -2,12 +2,13 @@ package fileio
 
 import (
 	"bufio"
+	"encoding/base64"
 	"log"
 	"os"
 	"strings"
 )
 
-func ReadFileIntoByteSlice(filepath string) (sliceStr [][]byte) {
+func ReadBase64FileIntoByteSlice(filepath string) (sliceByte []byte) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -18,7 +19,25 @@ func ReadFileIntoByteSlice(filepath string) (sliceStr [][]byte) {
 
 	for fscanner.Scan() {
 		textinput := strings.TrimSpace(fscanner.Text())
-		sliceStr = append(sliceStr, []byte(textinput))
+		b64DecodedBytes, _ := base64.StdEncoding.DecodeString(textinput)
+		sliceByte = append(sliceByte, b64DecodedBytes...)
+	}
+
+	return
+}
+
+func ReadFileIntoByteSlice(filepath string) (sliceByte [][]byte) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	fscanner := bufio.NewScanner(file)
+
+	for fscanner.Scan() {
+		textinput := strings.TrimSpace(fscanner.Text())
+		sliceByte = append(sliceByte, []byte(textinput))
 	}
 
 	return
