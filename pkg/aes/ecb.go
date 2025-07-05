@@ -2,6 +2,7 @@ package aes
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 )
 
@@ -19,4 +20,17 @@ func DecryptAESECB(ciphertext []byte, key []byte) ([]byte, error) {
 		plaintext = append(plaintext, pt...)
 	}
 	return plaintext, nil
+}
+
+func DetectRedundantAESBlocks(ciphertext []byte) (int, error) {
+	freqBlocks := make(map[string]int)
+	blocks := slices.Chunk(ciphertext, AESBlockSize)
+	for block := range blocks {
+		freqBlocks[string(block)]++
+	}
+	val := slices.Sorted(maps.Values(freqBlocks))[len(freqBlocks)-1]
+	if val == 1 {
+		return 0, nil
+	}
+	return val, nil
 }
