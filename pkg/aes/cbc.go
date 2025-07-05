@@ -3,6 +3,8 @@ package aes
 import (
 	"fmt"
 	"slices"
+
+	"github.com/amcraig/cryptopals-go/internal/bytes"
 )
 
 func DecryptAESCBC(ciphertext []byte, key []byte, iv []byte) ([]byte, error) {
@@ -17,7 +19,7 @@ func DecryptAESCBC(ciphertext []byte, key []byte, iv []byte) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("this block could not be decrypted: %#v", block)
 		}
-		pt = XORWord(pt, iv)
+		pt = bytes.XORBytes(pt, iv)
 		iv = block
 		plaintext = append(plaintext, pt...)
 	}

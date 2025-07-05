@@ -5,6 +5,7 @@ import (
 	"math/bits"
 	"slices"
 
+	"github.com/amcraig/cryptopals-go/internal/bytes"
 	"github.com/amcraig/cryptopals-go/internal/constants"
 	"github.com/amcraig/cryptopals-go/internal/math/matrix"
 )
@@ -19,10 +20,7 @@ const AESBlockSize = 16 // Bytes
 type word = []byte
 
 func XORWord(a, b word) word {
-	for i := range a {
-		a[i] = a[i] ^ b[i]
-	}
-	return a
+	return bytes.XORBytes(a, b)
 }
 
 func SubWord(w word) word {
