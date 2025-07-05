@@ -3,14 +3,14 @@ package pkcs
 func AddPKCS7Padding(plaintext []byte, blocksize int) ([]byte, error) {
 	paddingByte := 0x04
 	isMultiple := len(plaintext)%blocksize == 0
-	var underFlow int
+	var underflow int
 	if isMultiple {
-		underFlow = blocksize - len(plaintext)
+		underflow = blocksize - len(plaintext)
 	} else {
-		underFlow = blocksize - len(plaintext)%blocksize
+		underflow = blocksize - len(plaintext)%blocksize
 	}
 
-	t := make([]byte, underFlow)
+	t := make([]byte, underflow)
 	for i := range t {
 		t[i] = byte(paddingByte)
 	}
