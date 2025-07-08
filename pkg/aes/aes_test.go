@@ -317,6 +317,18 @@ func TestGenerateAESKey(t *testing.T) {
 	}
 }
 
+func TestAESECB(t *testing.T) {
+	key := []byte("YELLOW SUBMARINE")
+
+	plaintext := []byte("YELLOW SUBMARINE NOT A CATAMARAN")
+
+	ct, _ := EncryptAESECB(plaintext, key)
+	pt, _ := DecryptAESECB(ct, key)
+
+	if reflect.DeepEqual(pt, plaintext) == false {
+		t.Errorf("the regenerated plaintext does not match the original, want: %v, got %v", plaintext, pt)
+	}
+}
 func TestAESCBC(t *testing.T) {
 	key := []byte("YELLOW SUBMARINE")
 	iv := []byte(strings.Repeat("\x00", AESBlockSize))
