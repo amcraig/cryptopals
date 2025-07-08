@@ -7,6 +7,24 @@ import (
 	"github.com/amcraig/cryptopals-go/internal/bytes"
 )
 
+func EncryptAESCBC(plaintext []byte, key []byte, iv []byte) ([]byte, error) {
+	if len(iv) != 16 {
+		return nil, fmt.Errorf("iv given was not the correct length, was given %d bytes, requires 16 bytes", len(iv))
+	}
+	blocks := slices.Chunk(plaintext, AESBlockSize)
+	var ciphertext []byte
+	for block := range blocks {
+		block := bytes.XORBytes(block, iv)
+		ct, err := Cipher(block, key)
+		if err != nil {
+			return nil, fmt.Errorf("this block could not be encrypted: %#v", block)
+		}
+		iv = ct
+		ciphertext = append(ciphertext, ct...)
+	}
+	return ciphertext, nil
+}
+
 func DecryptAESCBC(ciphertext []byte, key []byte, iv []byte) ([]byte, error) {
 	if len(iv) != 16 {
 		return nil, fmt.Errorf("iv given was not the correct length, was given %d bytes, requires 16 bytes", len(iv))

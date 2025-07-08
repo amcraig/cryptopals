@@ -3,6 +3,7 @@ package aes
 import (
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/amcraig/cryptopals-go/internal/constants"
@@ -300,4 +301,32 @@ func TestInvalidCipherKey(t *testing.T) {
 	// This should pass if Cipher throws a panic and fails if it succeeds.
 	// Never reaches here if `OtherFunctionThatPanics` panics.
 	t.Errorf("did not panic")
+}
+
+func TestGenerateAESKey(t *testing.T) {
+	_, err := GenerateAESKey(10)
+	if err == nil {
+		t.Errorf("AES key generated should have failed")
+	}
+
+	for _, i := range []int{16, 24, 32} {
+		key, _ := GenerateAESKey(i)
+		if len(key) != i {
+			t.Errorf("key length does not match specified: %d, got : %#v", i, key)
+		}
+	}
+}
+
+func TestAESCBC(t *testing.T) {
+	key := []byte("YELLOW SUBMARINE")
+	iv := []byte(strings.Repeat("\x00", AESBlockSize))
+
+	plaintext := []byte("YELLOW SUBMARINE NOT A CATAMARAN")
+
+	ct, _ := EncryptAESCBC(plaintext, key, iv)
+	pt, _ := DecryptAESCBC(ct, key, iv)
+
+	if reflect.DeepEqual(pt, plaintext) == false {
+		t.Errorf("the regenerated plaintext does not match the original, want: %v, got %v", plaintext, pt)
+	}
 }
