@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+
+	"github.com/amcraig/cryptopals-go/pkg/pkcs"
 )
 
 // Recommendation for Block Cipher Modes of Operation: Methods and Techniques
@@ -13,6 +15,9 @@ func EncryptAESECB(plaintext []byte, key []byte) ([]byte, error) {
 	blocks := slices.Chunk(plaintext, AESBlockSize)
 	var ciphertext []byte
 	for block := range blocks {
+		if len(block) != AESBlockSize {
+			block, _ = pkcs.AddPKCS7Padding(block, AESBlockSize)
+		}
 		ct, err := Cipher(block, key)
 		if err != nil {
 			return nil, fmt.Errorf("this block could not be encrypted: %#v", block)

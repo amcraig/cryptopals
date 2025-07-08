@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/amcraig/cryptopals-go/internal/bytes"
+	"github.com/amcraig/cryptopals-go/pkg/pkcs"
 )
 
 func EncryptAESCBC(plaintext []byte, key []byte, iv []byte) ([]byte, error) {
@@ -14,6 +15,9 @@ func EncryptAESCBC(plaintext []byte, key []byte, iv []byte) ([]byte, error) {
 	blocks := slices.Chunk(plaintext, AESBlockSize)
 	var ciphertext []byte
 	for block := range blocks {
+		if len(block) != AESBlockSize {
+			block, _ = pkcs.AddPKCS7Padding(block, AESBlockSize)
+		}
 		block := bytes.XORBytes(block, iv)
 		ct, err := Cipher(block, key)
 		if err != nil {
