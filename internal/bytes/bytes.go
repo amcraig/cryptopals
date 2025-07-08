@@ -2,8 +2,12 @@ package bytes
 
 // Tested in aes_test.go
 func XORBytes(a, b []byte) []byte {
-	for i := range a {
-		a[i] = a[i] ^ b[i]
+	if len(a) != len(b) {
+		panic("the byte slices are not equal length")
 	}
-	return a
+	c := make([]byte, len(a))
+	for i := range a {
+		c[i] = a[i] ^ b[i]
+	}
+	return c
 }
