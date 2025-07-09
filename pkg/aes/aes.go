@@ -20,7 +20,8 @@ const AESBlockSize = 16 // Bytes
 type word = []byte
 
 func XORWord(a, b word) word {
-	return bytes.XORBytes(a, b)
+	c, _ := bytes.XORByteSlice(a, b)
+	return c
 }
 
 func SubWord(w word) word {

@@ -4,7 +4,7 @@ import (
 	hex "encoding/hex"
 	"testing"
 
-	"github.com/amcraig/cryptopals-go/pkg/xor"
+	"github.com/amcraig/cryptopals-go/internal/bytes"
 )
 
 func Test2FixedXOR(t *testing.T) {
@@ -17,7 +17,7 @@ func Test2FixedXOR(t *testing.T) {
 	decBuf2, _ := hex.DecodeString(input2)
 
 	// XORs each byte in each slice with eachother
-	xorBuf, _ := xor.XORByteSlice(decBuf1, decBuf2)
+	xorBuf, _ := bytes.XORByteSlice(decBuf1, decBuf2)
 
 	// Encode bytes back to hex string
 	resp := hex.EncodeToString(xorBuf)

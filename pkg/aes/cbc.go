@@ -18,7 +18,10 @@ func EncryptAESCBC(plaintext []byte, key []byte, iv []byte) ([]byte, error) {
 		if len(block) != AESBlockSize {
 			block, _ = pkcs.AddPKCS7Padding(block, AESBlockSize)
 		}
-		block := bytes.XORBytes(block, iv)
+		block, err := bytes.XORByteSlice(block, iv)
+		if err != nil {
+			return nil, err
+		}
 		ct, err := Cipher(block, key)
 		if err != nil {
 			return nil, fmt.Errorf("this block could not be encrypted: %#v", block)
@@ -41,7 +44,10 @@ func DecryptAESCBC(ciphertext []byte, key []byte, iv []byte) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("this block could not be decrypted: %#v", block)
 		}
-		pt = bytes.XORBytes(pt, iv)
+		pt, err = bytes.XORByteSlice(pt, iv)
+		if err != nil {
+			return nil, err
+		}
 		iv = block
 		plaintext = append(plaintext, pt...)
 	}
