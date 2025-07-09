@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func ReadBase64FileIntoByteSlice(filepath string) (sliceByte []byte) {
+func ReadBase64FileIntoByteSlice(filepath string) (buf []byte) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -20,13 +20,13 @@ func ReadBase64FileIntoByteSlice(filepath string) (sliceByte []byte) {
 	for fscanner.Scan() {
 		textinput := strings.TrimSpace(fscanner.Text())
 		b64DecodedBytes, _ := base64.StdEncoding.DecodeString(textinput)
-		sliceByte = append(sliceByte, b64DecodedBytes...)
+		buf = append(buf, b64DecodedBytes...)
 	}
 
 	return
 }
 
-func ReadFileIntoByteSlice(filepath string) (sliceByte [][]byte) {
+func ReadFileLinesIntoByteSlices(filepath string) (sliceByte [][]byte) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -43,7 +43,7 @@ func ReadFileIntoByteSlice(filepath string) (sliceByte [][]byte) {
 	return
 }
 
-func ReadFileIntoStringSlice(filepath string) (sliceStr []string) {
+func ReadFileLinesIntoStringSlices(filepath string) (sliceStr []string) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -55,6 +55,23 @@ func ReadFileIntoStringSlice(filepath string) (sliceStr []string) {
 	for fscanner.Scan() {
 		textinput := strings.TrimSpace(fscanner.Text())
 		sliceStr = append(sliceStr, textinput)
+	}
+
+	return
+}
+
+func ReadFileIntoByteSlice(filepath string) (buf []byte) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	fscanner := bufio.NewScanner(file)
+
+	for fscanner.Scan() {
+		textinput := strings.TrimSpace(fscanner.Text())
+		buf = append(buf, []byte(textinput)...)
 	}
 
 	return

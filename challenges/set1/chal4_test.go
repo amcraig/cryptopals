@@ -11,7 +11,7 @@ import (
 
 func Test4DetectSingleCharacterXOR(t *testing.T) {
 	var inputFile string = "./testFiles/4.txt"
-	charStrings := fileio.ReadFileIntoStringSlice(inputFile)
+	charStrings := fileio.ReadFileLinesIntoStringSlices(inputFile)
 
 	var detectedMessage []byte
 	var detectedByte byte

@@ -8,7 +8,7 @@ import (
 )
 
 func Test8DetectAESInECBMode(t *testing.T) {
-	ciphertexts := fileio.ReadFileIntoByteSlice("./testFiles/8.txt")
+	ciphertexts := fileio.ReadFileLinesIntoByteSlices("./testFiles/8.txt")
 
 	score := 0
 	scoringIdx := -1
